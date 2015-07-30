@@ -19,10 +19,9 @@ public:
 	void member(int minSize=10, int maxSize=1000);
 	void clean();
 private:
-	vector<vector<pair<int, int> > > edges;
-	vector<vector<pair<int, int> > > groups;
-	map<long long, int> groupId;
-	map<long long, int> userId;
+	vector<vector<pair<int, int> > > edges, groups;
+	map<long long, int> groupId, userId;
+	vector<pair<int, int> > kFriend, kFractionFriend;
 
 	int getGroupId(long long room);
 	int getUserId(long long user);

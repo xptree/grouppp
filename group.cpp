@@ -20,7 +20,8 @@ Group::Group(const char* userFile, const char* edgeFile) {
 		room      = getGroupId(elems_ll[0]);
 		user      = getUserId(elems_ll[1]);
 		timestamp = int(elems_ll[2]);
-		groups.resize(room+1);
+		if (room+1 > groups.size())
+			groups.resize(room+1);
 		groups[room].push_back(make_pair(user, timestamp));
 	}
 	fclose(stdin);
@@ -35,10 +36,12 @@ Group::Group(const char* userFile, const char* edgeFile) {
 		src       = getUserId(elems_ll[0]);
 		dst       = getUserId(elems_ll[1]);
 		timestamp = int(elems_ll[2]);
-		edges.resize(src+1);
+		if (src+1 > edges.size())
+			edges.resize(src+1);
 		edges[src].push_back(make_pair(dst, timestamp));
 		if (src != dst) {
-			edges.resize(dst+1);
+			if (dst+1 > edges.size())
+				edges.resize(dst+1);
 			edges[dst].push_back(make_pair(src, timestamp));
 		}
 	}
@@ -48,8 +51,60 @@ Group::Group(const char* userFile, const char* edgeFile) {
 Group::~Group() {}
 
 void Group::member(int minSize, int maxSize) {
+	int delta = 60*60*24*30;
 	for (size_t group=0; group<groups.size(); ++group) {
-
+		if (groups[group].size()<minSize or groups[group].size()>maxSize)
+			continue;
+		vector<pair<int, int> >& nodes = groups[group];
+		vector<int> T;
+		map<int, int> joinTime;
+		set<int> fringe, currentNode;
+		for (size_t i=0; i<nodes.size();++i) {
+			T.push_back(nodes[i].second);
+			joinTime[nodes[i].first] = nodes[i].second;
+		}
+		vector<int>::iterator it = unique(T.begin(), T.end());
+		T.resize(distance(T.begin(), it));
+		int p = 0, checkPoint = T[0] - delta/6*5;
+		for (size_t i=0; i<T.size();++i) {
+			int t = T[i];
+			while (p<nodes.size() and nodes[p].second<=t) {
+				int u = nodes[i].first;
+				fringe.erase(u);
+				currentNode.insert(u);
+				for (size_t j=0; j<edges[u].size(); ++j) {
+					int v = edges[u][j].first;
+					if (currentNode.find(v)==currentNode.end())
+						fringe.insert(v);
+				}
+				++p;
+			}
+			if (checkPoint+delta<=t) {
+				for (set<int>::iterator iter=fringe.begin(); iter!=fringe.end(); ++iter) {
+					int u = *iter, k = 0, d = 0;
+					for (size_t j=0;j<edges[u].size();++j){
+						int v = edges[u][j].first, timestamp = edges[u][j].second;
+						if (timestamp<=t) {
+							++d;
+							if (currentNode.find(v)!=currentNode.end())
+								++k;
+						}
+					}
+					if (k+1 > kFriend.size())
+						kFriend.resize(k+1);
+					kFriend[k].second += 1;
+					if (joinTime.find(u)!=joinTime.end() and joinTime[u]<=t+delta)
+						kFriend[k].first += 1;
+					k = d ? int(double(k) * 100 / d) : 0;
+					if (k+1>kFractionFriend.size())
+						kFractionFriend.resize(k+1);
+					kFractionFriend[k].second += 1;
+					if (joinTime.find(u)!=joinTime.end() and joinTime[u]<=t+delta)
+						kFractionFriend[k].first += 1;
+				}
+				checkPoint = t;
+			}
+		}
 	}
 }
 
