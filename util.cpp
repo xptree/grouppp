@@ -19,3 +19,7 @@ vector<long long> Util::string_to_ll(vector<string>& elems)
 		elems_ll.push_back(atoll(elems[i].c_str()));
 	return elems_ll;
 }
+
+bool Util::cmpTime(pair<int, int> first, pair<int, int> second) {
+	return first.second < second.second;
+}

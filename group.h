@@ -15,7 +15,9 @@ class Group
 {
 public:
 	Group(const char* userFile, const char* edgeFile);
-//	~Group();
+	~Group();
+	void member(int minSize=10, int maxSize=1000);
+	void clean();
 private:
 	vector<vector<pair<int, int> > > edges;
 	vector<vector<pair<int, int> > > groups;
