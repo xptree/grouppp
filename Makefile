@@ -1,8 +1,8 @@
 #!/bin/bash
 
 CC=g++
-CFLAGS= -O2 -Wall
-LDFLAGS= -O2 -Wall
+CFLAGS= -O3 -g -Wall
+LDFLAGS= -O3 -g -Wall
 EXEC=main
 OBJ= group.o util.o main.o
 

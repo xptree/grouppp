@@ -12,10 +12,10 @@ vector<string> Util::split(const char* s, char delim)
 	return elems;
 }
 
-vector<int> Util::string_to_int(vector<string>& elems)
+vector<long long> Util::string_to_ll(vector<string>& elems)
 {
-	vector<int> elems_int;
+	vector<long long> elems_ll;
 	for (size_t i=0; i<elems.size();++i)
-		elems_int.push_back(atoi(elems[i].c_str()));
-	return elems_int;
+		elems_ll.push_back(atoll(elems[i].c_str()));
+	return elems_ll;
 }

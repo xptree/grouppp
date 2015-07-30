@@ -18,7 +18,12 @@ public:
 //	~Group();
 private:
 	vector<vector<pair<int, int> > > edges;
-	vector<vector<pair<int, int> > > users;
+	vector<vector<pair<int, int> > > groups;
+	map<long long, int> groupId;
+	map<long long, int> userId;
+
+	int getGroupId(long long room);
+	int getUserId(long long user);
 };
 
 
