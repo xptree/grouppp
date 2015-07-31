@@ -18,6 +18,7 @@ public:
 	~Group();
 	void member(int minSize=10, int maxSize=1000);
 	void clean();
+	void dump(const char* outputFile);
 private:
 	vector<vector<pair<int, int> > > edges, groups;
 	map<long long, int> groupId, userId;

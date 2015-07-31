@@ -139,6 +139,21 @@ void Group::clean() {
 	}
 }
 
+void Group::dump(const char* outputFile) {
+	/*
+	 * First output the length of kFriend, then output then contents of kFriend.
+	 * Second output kFractionFriend.
+	 */
+	freopen(outputFile, "w", stdout);
+	printf("%lu\n", kFriend.size());
+	for (size_t i=0; i<kFriend.size(); ++i)
+		printf("%d\t%d\n", kFriend[i].first, kFriend[i].second);
+	printf("%lu\n", kFractionFriend.size());
+	for (size_t i=0; i<kFractionFriend.size(); ++i)
+		printf("%d\t%d\n", kFractionFriend[i].first, kFractionFriend[i].second);
+	fclose(stdout);
+}
+
 int Group::getGroupId(long long room) {
 	map<long long, int>::iterator iter;
 	iter = groupId.find(room);
