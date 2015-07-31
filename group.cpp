@@ -141,7 +141,7 @@ void Group::clean() {
 
 void Group::dump(const char* outputFile) {
 	/*
-	 * First output the length of kFriend, then output then contents of kFriend.
+	 * First output the length of kFriend, then output the contents of kFriend.
 	 * Second output kFractionFriend.
 	 */
 	freopen(outputFile, "w", stdout);
