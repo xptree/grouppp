@@ -2,17 +2,33 @@
 #include "util.h"
 #include <cstdio>
 #include <set>
+#include "log4cpp/Category.hh"
+#include "log4cpp/OstreamAppender.hh"
+#include "log4cpp/Priority.hh"
+#include "log4cpp/PatternLayout.hh"
 
 using namespace std;
 
 #define BUFFER_SIZE 100
 
 Group::Group(const char* userFile, const char* edgeFile) {
+    log4cpp::Category& root = log4cpp::Category::getRoot();
+    log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+    infoCategory.info("group class constructor called");
 	char buffer[BUFFER_SIZE];
-	freopen(userFile, "r", stdin);
+	int last = 1;
+	long long loadedBytes = 0;
+	long long userFileSize = Util::getFileSize(userFile);
+    infoCategory.info("start loading from %s, size of file %.2fMB", userFile, userFileSize/1024./1024.);
+	freopen(userFile, "rb", stdin);
 	int room, user, timestamp;
 	while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
 		size_t len = strlen(buffer);
+		loadedBytes += len * sizeof(char);
+		if (loadedBytes / double(userFileSize) * 100 >= last) {
+			infoCategory.info("%d%% loaded ...", int(loadedBytes / double(userFileSize) * 100));
+			last += 10;
+		}
 		if (len>0 && buffer[len-1]=='\n')
 			buffer[len-1] = '\0';
 		vector<string> elems       = Util::split(buffer, '\t');
@@ -25,10 +41,19 @@ Group::Group(const char* userFile, const char* edgeFile) {
 		groups[room].push_back(make_pair(user, timestamp));
 	}
 	fclose(stdin);
-	freopen(edgeFile, "r", stdin);
+	last = 1;
+	loadedBytes = 0;
+	long long edgeFileSize = Util::getFileSize(edgeFile);
+    infoCategory.info("start loading from %s, size of file %.2fMB", edgeFile, edgeFileSize/1024./1024.);
+	freopen(edgeFile, "rb", stdin);
 	long long src, dst;
 	while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
 		size_t len = strlen(buffer);
+		loadedBytes += len * sizeof(char);
+		if (loadedBytes / double(edgeFileSize) * 100 >= last) {
+			infoCategory.info("%d%% loaded ...", int(loadedBytes / double(edgeFileSize) * 100));
+			last += 10;
+		}
 		if (len>0 && buffer[len-1]=='\n')
 			buffer[len-1] = '\0';
 		vector<string> elems       = Util::split(buffer, '\t');

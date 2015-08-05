@@ -2,7 +2,7 @@
 
 CC=g++
 CFLAGS= -O3 -g -Wall
-LDFLAGS= -O3 -g -Wall
+LDFLAGS= -O3 -g -Wall -llog4cpp
 EXEC=main
 OBJ= group.o util.o main.o
 

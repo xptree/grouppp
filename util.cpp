@@ -1,5 +1,9 @@
 #include "util.h"
 #include <sstream>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -22,4 +26,15 @@ vector<long long> Util::string_to_ll(vector<string>& elems)
 
 bool Util::cmpTime(pair<int, int> first, pair<int, int> second) {
 	return first.second < second.second;
+}
+
+long long Util::getFileSize(const char* fileName) // path to file
+{
+	streampos begin,end;
+	ifstream file (fileName, ios::binary);
+	begin = file.tellg();
+	file.seekg (0, ios::end);
+	end = file.tellg();
+	file.close();
+	return (long long)(end-begin);
 }
