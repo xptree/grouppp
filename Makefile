@@ -1,8 +1,8 @@
 #!/bin/bash
 
 CC=g++
-CFLAGS= -O3 -g -Wall
-LDFLAGS= -O3 -g -Wall -llog4cpp
+CFLAGS= -O3 -g -Wall -I/data/qspace/data/user/hdpzhakeberglu/tangjie/local/include
+LDFLAGS= -O3 -g -Wall -llog4cpp -lrt -L/data/qspace/data/user/hdpzhakeberglu/tangjie/local/lib
 EXEC=main
 OBJ= group.o util.o main.o
 

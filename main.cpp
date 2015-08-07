@@ -10,8 +10,8 @@ using namespace std;
 
 int main()
 {
-	log4cpp::OstreamAppender* osAppender = new log4cpp::OstreamAppender("osAppender", &cout);
-	// log4cpp::Appender *osAppender = new log4cpp::FileAppender("default", "program.log");
+	//log4cpp::OstreamAppender* osAppender = new log4cpp::OstreamAppender("osAppender", &cout);
+	log4cpp::Appender *osAppender = new log4cpp::FileAppender("default", "program.log");
     log4cpp::PatternLayout* pLayout = new log4cpp::PatternLayout();
     pLayout->setConversionPattern("%d: %p %c %x: %m%n");
     osAppender->setLayout(pLayout);
@@ -26,9 +26,9 @@ int main()
      * infoCategory.fatal("system has a fatal error,must be shutdown");
      * infoCategory.info("system shutdown,you can find some information in system log");
 	 */
-	Group group("../Data/user_10000", "../Data/edge_10000");
+	Group group("../Data/user1m", "../Data/edge1m");
 	group.clean();
-	group.member(10,1000);
+	group.member(10,100000);
 	group.dump("output.txt");
     log4cpp::Category::shutdown();
 	return 0;
