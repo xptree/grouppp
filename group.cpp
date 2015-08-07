@@ -76,6 +76,9 @@ Group::Group(const char* userFile, const char* edgeFile) {
 Group::~Group() {}
 
 void Group::member(int minSize, int maxSize) {
+    log4cpp::Category& root = log4cpp::Category::getRoot();
+    log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("member called");
 	int delta = 60*60*24*30;
 	for (size_t group=0; group<groups.size(); ++group) {
 		if (groups[group].size()<minSize or groups[group].size()>maxSize)
@@ -120,7 +123,7 @@ void Group::member(int minSize, int maxSize) {
 					kFriend[k].second += 1;
 					if (joinTime.find(u)!=joinTime.end() and joinTime[u]<=t+delta)
 						kFriend[k].first += 1;
-					k = d ? int(double(k) * 100 / d) : 0;
+					k = d ? int(double(k) * 100 / d + 0.5) : 0;
 					if (k+1>kFractionFriend.size())
 						kFractionFriend.resize(k+1);
 					kFractionFriend[k].second += 1;
@@ -131,9 +134,13 @@ void Group::member(int minSize, int maxSize) {
 			}
 		}
 	}
+	infoCategory.info("member completed");
 }
 
 void Group::clean() {
+    log4cpp::Category& root = log4cpp::Category::getRoot();
+    log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("clean called");
 	for (size_t group=0; group<groups.size(); ++group) {
 		vector<pair<int, int> > tmp(groups[group]);
 		groups[group].clear();
@@ -162,6 +169,7 @@ void Group::clean() {
 			edges[user].push_back(tmp[i]);
 		}
 	}
+	infoCategory.info("clean completed");
 }
 
 void Group::dump(const char* outputFile) {
@@ -169,6 +177,9 @@ void Group::dump(const char* outputFile) {
 	 * First output the length of kFriend, then output the contents of kFriend.
 	 * Second output kFractionFriend.
 	 */
+    log4cpp::Category& root = log4cpp::Category::getRoot();
+    log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("dump called");
 	freopen(outputFile, "w", stdout);
 	printf("%lu\n", kFriend.size());
 	for (size_t i=0; i<kFriend.size(); ++i)
@@ -177,6 +188,7 @@ void Group::dump(const char* outputFile) {
 	for (size_t i=0; i<kFractionFriend.size(); ++i)
 		printf("%d\t%d\n", kFractionFriend[i].first, kFractionFriend[i].second);
 	fclose(stdout);
+	infoCategory.info("dump completed");
 }
 
 int Group::getGroupId(long long room) {
