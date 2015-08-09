@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <map>
 #include <algorithm>
 
@@ -21,8 +22,9 @@ public:
 	void dump(const char* outputFile);
 private:
 	vector<vector<pair<int, int> > > edges, groups;
-	map<long long, int> groupId, userId;
+	unordered_map<long long, int> groupId, userId;
 	vector<pair<int, int> > kFriend, kFractionFriend;
+	vector<map<int, int> > groupSizeOfKFriend;
 
 	int getGroupId(long long room);
 	int getUserId(long long user);

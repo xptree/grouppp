@@ -121,8 +121,15 @@ void Group::member(int minSize, int maxSize) {
 					if (k+1 > kFriend.size())
 						kFriend.resize(k+1);
 					kFriend[k].second += 1;
-					if (joinTime.find(u)!=joinTime.end() and joinTime[u]<=t+delta)
+					if (joinTime.find(u)!=joinTime.end() and joinTime[u]<=t+delta) {
 						kFriend[k].first += 1;
+						if (k+1 > groupSizeOfKFriend.size())
+							groupSizeOfKFriend.resize(k+1);
+						int groupSize = currentNode.size();
+						if (groupSizeOfKFriend[k].find(groupSize) == groupSizeOfKFriend[k].end())
+							groupSizeOfKFriend[k][groupSize] = 0;
+						groupSizeOfKFriend[k][groupSize] += 1;
+					}
 					k = d ? int(double(k) * 100 / d + 0.5) : 0;
 					if (k+1>kFractionFriend.size())
 						kFractionFriend.resize(k+1);
@@ -187,22 +194,22 @@ void Group::dump(const char* outputFile) {
 	printf("%lu\n", kFractionFriend.size());
 	for (size_t i=0; i<kFractionFriend.size(); ++i)
 		printf("%d\t%d\n", kFractionFriend[i].first, kFractionFriend[i].second);
+	for (size_t i=0; i<groupSizeOfKFriend.size(); ++i)
+		for (map<int, int>::iterator it=groupSizeOfKFriend[i].begin(); it!=groupSizeOfKFriend[i].end(); ++it) {
+			printf("%d\t%d\t%d\n", i, it->first, it->second);
+		}
 	fclose(stdout);
 	infoCategory.info("dump completed");
 }
 
 int Group::getGroupId(long long room) {
-	map<long long, int>::iterator iter;
-	iter = groupId.find(room);
-	if (iter == groupId.end())
+	if (groupId.find(room) == groupId.end())
 		groupId[room] = groupId.size();
 	return groupId[room];
 }
 
 int Group::getUserId(long long user) {
-	map<long long, int>::iterator iter;
-	iter = userId.find(user);
-	if (iter == userId.end())
+	if (userId.find(user) == userId.end())
 		userId[user] = userId.size();
 	return userId[user];
 }
