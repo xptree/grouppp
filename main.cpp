@@ -29,7 +29,7 @@ int main()
 	Group group("../Data/user1m", "../Data/edge1m");
 	group.clean();
 	group.member(10,1000000);
-	group.dump("output.txt");
+	group.dumpAttrib("attrib.txt");
     log4cpp::Category::shutdown();
 	return 0;
 }

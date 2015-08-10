@@ -1,6 +1,9 @@
 #include "group.h"
 #include "util.h"
+#include "disjointSet.h"
 #include <cstdio>
+#include <cstdlib>
+#include <iostream>
 #include <set>
 #include "log4cpp/Category.hh"
 #include "log4cpp/OstreamAppender.hh"
@@ -10,7 +13,7 @@
 using namespace std;
 
 #define BUFFER_SIZE 100
-
+#define every(iter, iterable) auto iter = iterable.begin(); iter != iterable.end(); iter++
 Group::Group(const char* userFile, const char* edgeFile) {
     log4cpp::Category& root = log4cpp::Category::getRoot();
     log4cpp::Category& infoCategory = root.getInstance("infoCategory");
@@ -83,6 +86,7 @@ void Group::member(int minSize, int maxSize) {
 	for (size_t group=0; group<groups.size(); ++group) {
 		if (groups[group].size()<minSize or groups[group].size()>maxSize)
 			continue;
+		DisjointSet connection;
 		vector<pair<int, int> >& nodes = groups[group];
 		vector<int> T;
 		map<int, int> joinTime;
@@ -110,14 +114,41 @@ void Group::member(int minSize, int maxSize) {
 			if (checkPoint+delta<=t) {
 				for (set<int>::iterator iter=fringe.begin(); iter!=fringe.end(); ++iter) {
 					int u = *iter, k = 0, d = 0;
+					set<int> neighbor;
+					DisjointSet connection;
 					for (size_t j=0;j<edges[u].size();++j){
 						int v = edges[u][j].first, timestamp = edges[u][j].second;
 						if (timestamp<=t) {
 							++d;
-							if (currentNode.find(v)!=currentNode.end())
+							if (currentNode.find(v)!=currentNode.end()) {
 								++k;
+								neighbor.insert(v);
+								connection.makeSet(v);
+							}
+						} else {
+							break;
 						}
 					}
+					for (set<int>::iterator it=neighbor.begin(); it!=neighbor.end(); ++it) {
+						int v = *it;
+						for (size_t j=0; j<edges[v].size(); ++j) {
+							if (connection.getDisconnectComponent() == 1) break;
+							int w = edges[v][j].first, timestamp = edges[v][j].second;
+							if (timestamp>t) break;
+							if (neighbor.find(w) != neighbor.end()) connection.merge(v, w);
+						}
+					}
+					int disconn = connection.getDisconnectComponent();
+					int groupSize = int(currentNode.size());
+					int numberOfFriendInGroup = k;
+					int degree = d;
+					bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
+					auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
+					if (attrib.find(feature) == attrib.end())
+						attrib[feature] = make_pair(0, 0);
+					positive ? ++attrib[feature].first : ++attrib[feature].second;
+
+					/*
 					if (k+1 > kFriend.size())
 						kFriend.resize(k+1);
 					kFriend[k].second += 1;
@@ -136,8 +167,9 @@ void Group::member(int minSize, int maxSize) {
 					kFractionFriend[k].second += 1;
 					if (joinTime.find(u)!=joinTime.end() and joinTime[u]<=t+delta)
 						kFractionFriend[k].first += 1;
+					*/
 				}
-				checkPoint = t;
+				checkPoint += 2*delta;
 			}
 		}
 	}
@@ -179,6 +211,21 @@ void Group::clean() {
 	infoCategory.info("clean completed");
 }
 
+void Group::dumpAttrib(const char* outputFile) {
+    log4cpp::Category& root = log4cpp::Category::getRoot();
+    log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("dump attrib called");
+	freopen(outputFile, "wb", stdout);
+	for (every(it, attrib)) {
+		int disconn = get<0>(it->first);
+		int groupSize = get<1>(it->first);
+		int numberOfFriendInGroup = get<2>(it->first);
+		int degree = get<3>(it->first);
+		printf("%d\t%d\t%d\t%d\t%d\t%d\n", disconn, groupSize, numberOfFriendInGroup, degree, it->second.first, it->second.second);
+	}
+	fclose(stdout);
+	infoCategory.info("dump attrib completed");
+}
 void Group::dump(const char* outputFile) {
 	/*
 	 * First output the length of kFriend, then output the contents of kFriend.

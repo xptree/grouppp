@@ -8,6 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <tuple>
 #include <algorithm>
 
 using namespace std;
@@ -20,11 +21,15 @@ public:
 	void member(int minSize=10, int maxSize=1000);
 	void clean();
 	void dump(const char* outputFile);
+	void dumpAttrib(const char* outputFile);
 private:
 	vector<vector<pair<int, int> > > edges, groups;
 	unordered_map<long long, int> groupId, userId;
+
 	vector<pair<int, int> > kFriend, kFractionFriend;
 	vector<map<int, int> > groupSizeOfKFriend;
+	vector<pair<int, int> > disconnectComponentOfKFriend;
+	map<tuple<int, int, int, int>, pair<int, int> > attrib;
 
 	int getGroupId(long long room);
 	int getUserId(long long user);
