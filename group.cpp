@@ -5,12 +5,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <set>
-/*
- * #include "log4cpp/Category.hh"
- * #include "log4cpp/OstreamAppender.hh"
- * #include "log4cpp/Priority.hh"
- * #include "log4cpp/PatternLayout.hh"
- */
+#include "log4cpp/Category.hh"
+#include "log4cpp/OstreamAppender.hh"
+#include "log4cpp/Priority.hh"
+#include "log4cpp/PatternLayout.hh"
 #include <omp.h>
 
 using namespace std;
@@ -19,23 +17,21 @@ using namespace std;
 #define every(iter, iterable) auto iter = iterable.begin(); iter != iterable.end(); iter++
 
 Group::Group(const char* userFile, const char* edgeFile) {
-	/*
-     * log4cpp::Category& root = log4cpp::Category::getRoot();
-     * log4cpp::Category& infoCategory = root.getInstance("infoCategory");
-     * infoCategory.info("group class constructor called");
-	 */
+	log4cpp::Category& root = log4cpp::Category::getRoot();
+	log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("group class constructor called");
 	char buffer[BUFFER_SIZE];
 	int last = 1;
 	long long loadedBytes = 0;
 	long long userFileSize = Util::getFileSize(userFile);
-    // infoCategory.info("start loading from %s, size of file %.2fMB", userFile, userFileSize/1024./1024.);
+	infoCategory.info("start loading from %s, size of file %.2fMB", userFile, userFileSize/1024./1024.);
 	freopen(userFile, "rb", stdin);
 	int room, user, timestamp;
 	while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
 		size_t len = strlen(buffer);
 		loadedBytes += len * sizeof(char);
 		if (loadedBytes / double(userFileSize) * 100 >= last) {
-			// infoCategory.info("%d%% loaded ...", int(loadedBytes / double(userFileSize) * 100));
+			infoCategory.info("%d%% loaded ...", int(loadedBytes / double(userFileSize) * 100));
 			last += 10;
 		}
 		if (len>0 && buffer[len-1]=='\n')
@@ -53,14 +49,14 @@ Group::Group(const char* userFile, const char* edgeFile) {
 	last = 1;
 	loadedBytes = 0;
 	long long edgeFileSize = Util::getFileSize(edgeFile);
-    // infoCategory.info("start loading from %s, size of file %.2fMB", edgeFile, edgeFileSize/1024./1024.);
+	infoCategory.info("start loading from %s, size of file %.2fMB", edgeFile, edgeFileSize/1024./1024.);
 	freopen(edgeFile, "rb", stdin);
 	long long src, dst;
 	while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
 		size_t len = strlen(buffer);
 		loadedBytes += len * sizeof(char);
 		if (loadedBytes / double(edgeFileSize) * 100 >= last) {
-			// infoCategory.info("%d%% loaded ...", int(loadedBytes / double(edgeFileSize) * 100));
+			infoCategory.info("%d%% loaded ...", int(loadedBytes / double(edgeFileSize) * 100));
 			last += 10;
 		}
 		if (len>0 && buffer[len-1]=='\n')
@@ -85,11 +81,9 @@ Group::Group(const char* userFile, const char* edgeFile) {
 Group::~Group() {}
 
 void Group::member(int minSize, int maxSize) {
-	/*
-     * log4cpp::Category& root = log4cpp::Category::getRoot();
-     * log4cpp::Category& infoCategory = root.getInstance("infoCategory");
-	 * infoCategory.info("member called");
-	 */
+	log4cpp::Category& root = log4cpp::Category::getRoot();
+	log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("member called");
 	int delta = 60*60*24*30;
 	int nthreads = omp_get_num_threads();
 	RECORD this_rec;
@@ -157,9 +151,6 @@ void Group::member(int minSize, int maxSize) {
 						int numberOfFriendInGroup = k;
 						int degree = d;
 						bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
-						if (disconn == 0 && groupSize == 2 and numberOfFriendInGroup == 0 and degree == 6) {
-							printf("group=%d, user=%d, timestamp=%d, bool=%d\n", group, u, t, positive?1:0);
-						}
 						auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
 						if (this_rec.find(feature) == this_rec.end())
 							this_rec[feature] = make_pair(0, 0);
@@ -179,15 +170,13 @@ void Group::member(int minSize, int maxSize) {
 			}
 		}
 	}
-	// infoCategory.info("member completed");
+	infoCategory.info("member completed");
 }
 
 void Group::clean() {
-	/*
-     * log4cpp::Category& root = log4cpp::Category::getRoot();
-     * log4cpp::Category& infoCategory = root.getInstance("infoCategory");
-	 * infoCategory.info("clean called");
-	 */
+	log4cpp::Category& root = log4cpp::Category::getRoot();
+	log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("clean called");
 	for (size_t group=0; group<groups.size(); ++group) {
 		vector<pair<int, int> > tmp(groups[group]);
 		groups[group].clear();
@@ -216,15 +205,13 @@ void Group::clean() {
 			edges[user].push_back(tmp[i]);
 		}
 	}
-	// infoCategory.info("clean completed");
+	infoCategory.info("clean completed");
 }
 
 void Group::dumpAttrib(const char* outputFile) {
-	/*
-     * log4cpp::Category& root = log4cpp::Category::getRoot();
-     * log4cpp::Category& infoCategory = root.getInstance("infoCategory");
-	 * infoCategory.info("dump attrib called");
-	 */
+	log4cpp::Category& root = log4cpp::Category::getRoot();
+	log4cpp::Category& infoCategory = root.getInstance("infoCategory");
+	infoCategory.info("dump attrib called");
 	freopen(outputFile, "wb", stdout);
 	for (every(it, attrib)) {
 		int disconn = get<0>(it->first);
@@ -234,7 +221,7 @@ void Group::dumpAttrib(const char* outputFile) {
 		printf("%d\t%d\t%d\t%d\t%d\t%d\n", disconn, groupSize, numberOfFriendInGroup, degree, it->second.first, it->second.second);
 	}
 	fclose(stdout);
-	// infoCategory.info("dump attrib completed");
+	infoCategory.info("dump attrib completed");
 }
 
 
