@@ -19,13 +19,6 @@ int main()
 	log4cpp::Category& infoCategory = root.getInstance("infoCategory");
 	infoCategory.addAppender(osAppender);
 	infoCategory.setPriority(log4cpp::Priority::INFO);
-	/*
-     * infoCategory.info("system is running");
-     * infoCategory.warn("system has a warning");
-     * infoCategory.error("system has a error, can't find a file");
-     * infoCategory.fatal("system has a fatal error,must be shutdown");
-     * infoCategory.info("system shutdown,you can find some information in system log");
-	 */
 	Group group("../Data/user_10000", "../Data/edge_10000");
 	group.clean();
 	group.member(10,1000000);

@@ -9,6 +9,7 @@
 #include "log4cpp/OstreamAppender.hh"
 #include "log4cpp/Priority.hh"
 #include "log4cpp/PatternLayout.hh"
+#include <omp.h>
 
 using namespace std;
 
@@ -84,72 +85,88 @@ void Group::member(int minSize, int maxSize) {
 	log4cpp::Category& infoCategory = root.getInstance("infoCategory");
 	infoCategory.info("member called");
 	int delta = 60*60*24*30;
-	for (size_t group=0; group<groups.size(); ++group) {
-		if (groups[group].size()<minSize or groups[group].size()>maxSize)
-			continue;
-		DisjointSet connection;
-		vector<pair<int, int> >& nodes = groups[group];
-		vector<int> T;
-		map<int, int> joinTime;
-		set<int> fringe, currentNode;
-		for (size_t i=0; i<nodes.size();++i) {
-			T.push_back(nodes[i].second);
-			joinTime[nodes[i].first] = nodes[i].second;
-		}
-		vector<int>::iterator it = unique(T.begin(), T.end());
-		T.resize(distance(T.begin(), it));
-		int p = 0, checkPoint = T[0] - delta/6*5;
-		for (size_t i=0; i<T.size();++i) {
-			int t = T[i];
-			while (p<nodes.size() and nodes[p].second<=t) {
-				int u = nodes[i].first;
-				fringe.erase(u);
-				currentNode.insert(u);
-				for (size_t j=0; j<edges[u].size(); ++j) {
-					int v = edges[u][j].first;
-					if (currentNode.find(v)==currentNode.end())
-						fringe.insert(v);
-				}
-				++p;
+	int nthreads = omp_get_num_threads();
+	RECORD this_rec;
+	#pragma omp parallel default(shared) private(this_rec)
+	{
+		#pragma omp for schedule(static)
+		for (int group=0; group<groups.size(); ++group) {
+			if (groups[group].size()<minSize or groups[group].size()>maxSize)
+				continue;
+			int tid = omp_get_thread_num();
+			DisjointSet connection;
+			vector<pair<int, int> >& nodes = groups[group];
+			vector<int> T;
+			map<int, int> joinTime;
+			set<int> fringe, currentNode;
+			for (size_t i=0; i<nodes.size();++i) {
+				T.push_back(nodes[i].second);
+				joinTime[nodes[i].first] = nodes[i].second;
 			}
-			if (checkPoint+delta<=t) {
-				for (set<int>::iterator iter=fringe.begin(); iter!=fringe.end(); ++iter) {
-					int u = *iter, k = 0, d = 0;
-					set<int> neighbor;
-					DisjointSet connection;
-					for (size_t j=0;j<edges[u].size();++j){
-						int v = edges[u][j].first, timestamp = edges[u][j].second;
-						if (timestamp<=t) {
-							++d;
-							if (currentNode.find(v)!=currentNode.end()) {
-								++k;
-								neighbor.insert(v);
-								connection.makeSet(v);
-							}
-						} else {
-							break;
-						}
+			vector<int>::iterator it = unique(T.begin(), T.end());
+			T.resize(distance(T.begin(), it));
+			int p = 0, checkPoint = T[0] - delta/6*5;
+			for (size_t i=0; i<T.size();++i) {
+				int t = T[i];
+				while (p<nodes.size() and nodes[p].second<=t) {
+					int u = nodes[i].first;
+					fringe.erase(u);
+					currentNode.insert(u);
+					for (size_t j=0; j<edges[u].size(); ++j) {
+						int v = edges[u][j].first;
+						if (currentNode.find(v)==currentNode.end())
+							fringe.insert(v);
 					}
-					for (set<int>::iterator it=neighbor.begin(); it!=neighbor.end(); ++it) {
-						int v = *it;
-						for (size_t j=0; j<edges[v].size(); ++j) {
-							if (connection.getDisconnectComponent() == 1) break;
-							int w = edges[v][j].first, timestamp = edges[v][j].second;
-							if (timestamp>t) break;
-							if (neighbor.find(w) != neighbor.end()) connection.merge(v, w);
-						}
-					}
-					int disconn = connection.getDisconnectComponent();
-					int groupSize = int(currentNode.size());
-					int numberOfFriendInGroup = k;
-					int degree = d;
-					bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
-					auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
-					if (attrib.find(feature) == attrib.end())
-						attrib[feature] = make_pair(0, 0);
-					positive ? ++attrib[feature].first : ++attrib[feature].second;
+					++p;
 				}
-				checkPoint += 2*delta;
+				if (checkPoint+delta<=t) {
+					for (set<int>::iterator iter=fringe.begin(); iter!=fringe.end(); ++iter) {
+						int u = *iter, k = 0, d = 0;
+						set<int> neighbor;
+						DisjointSet connection;
+						for (size_t j=0;j<edges[u].size();++j){
+							int v = edges[u][j].first, timestamp = edges[u][j].second;
+							if (timestamp<=t) {
+								++d;
+								if (currentNode.find(v)!=currentNode.end()) {
+									++k;
+									neighbor.insert(v);
+									connection.makeSet(v);
+								}
+							} else {
+								break;
+							}
+						}
+						for (set<int>::iterator it=neighbor.begin(); it!=neighbor.end(); ++it) {
+							int v = *it;
+							for (size_t j=0; j<edges[v].size(); ++j) {
+								if (connection.getDisconnectComponent() == 1) break;
+								int w = edges[v][j].first, timestamp = edges[v][j].second;
+								if (timestamp>t) break;
+								if (neighbor.find(w) != neighbor.end()) connection.merge(v, w);
+							}
+						}
+						int disconn = connection.getDisconnectComponent();
+						int groupSize = int(currentNode.size());
+						int numberOfFriendInGroup = k;
+						int degree = d;
+						bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
+						auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
+						if (this_rec.find(feature) == this_rec.end())
+							this_rec[feature] = make_pair(0, 0);
+						positive ? ++this_rec[feature].first : ++this_rec[feature].second;
+					}
+					checkPoint += 2*delta;
+				}
+			}
+		}
+		#pragma omp critical
+		{
+			for (every(it, this_rec)) {
+				if (attrib.find(it->first) == attrib.end())
+					attrib[it->first] = make_pair(0, 0);
+				attrib[it->first].first += it->second.first;
+				attrib[it->first].second += it->second.second;
 			}
 		}
 	}
@@ -206,28 +223,7 @@ void Group::dumpAttrib(const char* outputFile) {
 	fclose(stdout);
 	infoCategory.info("dump attrib completed");
 }
-void Group::dump(const char* outputFile) {
-	/*
-	 * First output the length of kFriend, then output the contents of kFriend.
-	 * Second output kFractionFriend.
-	 */
-	log4cpp::category& root = log4cpp::category::getroot();
-	log4cpp::category& infocategory = root.getinstance("infocategory");
-	infocategory.info("dump called");
-	freopen(outputFile, "w", stdout);
-	printf("%lu\n", kFriend.size());
-	for (size_t i=0; i<kFriend.size(); ++i)
-		printf("%d\t%d\n", kFriend[i].first, kFriend[i].second);
-	printf("%lu\n", kFractionFriend.size());
-	for (size_t i=0; i<kFractionFriend.size(); ++i)
-		printf("%d\t%d\n", kFractionFriend[i].first, kFractionFriend[i].second);
-	for (size_t i=0; i<groupSizeOfKFriend.size(); ++i)
-		for (map<int, int>::iterator it=groupSizeOfKFriend[i].begin(); it!=groupSizeOfKFriend[i].end(); ++it) {
-			printf("%d\t%d\t%d\n", i, it->first, it->second);
-		}
-	fclose(stdout);
-	infoCategory.info("dump completed");
-}
+
 
 int Group::getGroupId(long long room) {
 	if (groupId.find(room) == groupId.end()) {
