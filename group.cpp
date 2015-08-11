@@ -149,6 +149,9 @@ void Group::member(int minSize, int maxSize) {
 					int numberOfFriendInGroup = k;
 					int degree = d;
 					bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
+					if (disconn == 0 && groupSize == 2 && numberOfFriendInGroup == 0 && degree == 6) {
+						printf("group=%d, user=%d, timestamp=%d, bool=%d\n", group, u, t, positive?1:0);
+					}
 					auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
 					if (attrib.find(feature) == attrib.end())
 						attrib[feature] = make_pair(0, 0);
