@@ -13,6 +13,9 @@
 
 using namespace std;
 
+typedef map<tuple<int, int, int, int>, pair<int, int> > RECORD;
+typedef map<tuple<int, int, int, int>, pair<int, int> >* pRECORD;
+
 class Group
 {
 public:
@@ -20,15 +23,11 @@ public:
 	~Group();
 	void member(int minSize=10, int maxSize=1000);
 	void clean();
-	void dump(const char* outputFile);
 	void dumpAttrib(const char* outputFile);
 private:
 	vector<vector<pair<int, int> > > edges, groups;
 	unordered_map<long long, int> groupId, userId;
 
-	vector<pair<int, int> > kFriend, kFractionFriend;
-	vector<map<int, int> > groupSizeOfKFriend;
-	vector<pair<int, int> > disconnectComponentOfKFriend;
 	map<tuple<int, int, int, int>, pair<int, int> > attrib;
 
 	int getGroupId(long long room);
