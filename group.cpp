@@ -100,13 +100,11 @@ void Group::member(int minSize, int maxSize) {
 			if (groups[group].size()<minSize or groups[group].size()>maxSize)
 				continue;
 			int tid = omp_get_thread_num();
-			printf("%d from %d\n", group, tid);
 			DisjointSet connection;
 			vector<pair<int, int> >& nodes = groups[group];
 			vector<int> T;
 			map<int, int> joinTime;
 			set<int> fringe, currentNode;
-			printf("%d initialized\n", group);
 			for (size_t i=0; i<nodes.size();++i) {
 				T.push_back(nodes[i].second);
 				joinTime[nodes[i].first] = nodes[i].second;
@@ -116,7 +114,6 @@ void Group::member(int minSize, int maxSize) {
 			int p = 0, checkPoint = T[0] - delta/6*5;
 			for (size_t i=0; i<T.size();++i) {
 				int t = T[i];
-				printf("%d at timestamp %d\n", group, t);
 				while (p<nodes.size() and nodes[p].second<=t) {
 					int u = nodes[i].first;
 					fringe.erase(u);
@@ -129,7 +126,6 @@ void Group::member(int minSize, int maxSize) {
 					++p;
 				}
 				if (checkPoint+delta<=t) {
-					printf("%d enters checkpoint %d\n", group, t);
 					for (set<int>::iterator iter=fringe.begin(); iter!=fringe.end(); ++iter) {
 						int u = *iter, k = 0, d = 0;
 						set<int> neighbor;
@@ -161,12 +157,10 @@ void Group::member(int minSize, int maxSize) {
 						int numberOfFriendInGroup = k;
 						int degree = d;
 						bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
-						printf("start writing to map group=%d tid=%d at %lld\n", group, tid, (long long)(&this_rec));
 						auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
 						if (this_rec.find(feature) == this_rec.end())
 							this_rec[feature] = make_pair(0, 0);
 						positive ? ++this_rec[feature].first : ++this_rec[feature].second;
-						printf("end writing to map group=%d tid=%d at %lld\n", group, tid, (long long)(&this_rec));
 					}
 					checkPoint += 2*delta;
 				}
@@ -182,7 +176,6 @@ void Group::member(int minSize, int maxSize) {
 			}
 		}
 	}
-	printf("miao");
 	// infoCategory.info("member completed");
 }
 
