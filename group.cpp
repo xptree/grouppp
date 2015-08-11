@@ -265,13 +265,17 @@ void Group::dump(const char* outputFile) {
 }
 
 int Group::getGroupId(long long room) {
-	if (groupId.find(room) == groupId.end())
-		groupId[room] = groupId.size();
+	if (groupId.find(room) == groupId.end()) {
+		int num = groupId.size();
+		groupId[room] = num;
+	}
 	return groupId[room];
 }
 
 int Group::getUserId(long long user) {
-	if (userId.find(user) == userId.end())
-		userId[user] = userId.size();
+	if (userId.find(user) == userId.end()) {
+		int num = userId.size();
+		userId[user] = num;
+	}
 	return userId[user];
 }

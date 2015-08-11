@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC=g++
+CC=g++-5
 CFLAGS= -O3 -g -Wall -std=c++11 
 LDFLAGS= -O3 -g -Wall -std=c++11 
 EXEC=main
