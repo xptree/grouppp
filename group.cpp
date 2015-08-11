@@ -157,6 +157,9 @@ void Group::member(int minSize, int maxSize) {
 						int numberOfFriendInGroup = k;
 						int degree = d;
 						bool positive = joinTime.find(u) != joinTime.end() and joinTime[u] <= t+delta;
+						if (disconn == 0 && groupSize == 2 and numberOfFriendInGroup == 0 and degree == 6) {
+							printf("group=%d, user=%d, timestamp=%d, bool=%d\n", group, u, t, positive?1:0);
+						}
 						auto feature = make_tuple(disconn, groupSize, numberOfFriendInGroup, degree);
 						if (this_rec.find(feature) == this_rec.end())
 							this_rec[feature] = make_pair(0, 0);
@@ -236,13 +239,17 @@ void Group::dumpAttrib(const char* outputFile) {
 
 
 int Group::getGroupId(long long room) {
-	if (groupId.find(room) == groupId.end())
-		groupId[room] = groupId.size();
+	if (groupId.find(room) == groupId.end()) {
+		int num=groupId.size();
+		groupId[room] = num;
+	}
 	return groupId[room];
 }
 
 int Group::getUserId(long long user) {
-	if (userId.find(user) == userId.end())
-		userId[user] = userId.size();
+	if (userId.find(user) == userId.end()) {
+		int num=userId.size();
+		userId[user] = num;
+	}
 	return userId[user];
 }
